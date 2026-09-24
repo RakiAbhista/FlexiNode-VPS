@@ -274,39 +274,32 @@ export default function ContainerDetailPage({ params }: { params: Promise<{ id: 
 
       {/* TAB CONTENT: Web CLI */}
       {activeTab === "cli" && (
-        <CoachMark
-          userId="usr_cust_1"
-          pageKey="detail-web-cli"
-          title="Web CLI Terminal"
-          content="Di sini kamu bisa akses terminal server langsung dari browser, tanpa install apa pun."
-        >
-          <div className="p-6 bg-navy-900 text-green-400 rounded-2xl font-mono text-xs shadow-2xl space-y-4 border border-navy-800">
-            <div className="flex items-center justify-between border-b border-navy-800 pb-3 text-neutral-400">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <span className="ml-2 text-[11px]">web-cli@{order.subdomain}</span>
-              </div>
-              <span>Session: Active (Restricted Shell)</span>
+        <div className="p-6 bg-navy-900 text-green-400 rounded-2xl font-mono text-xs shadow-2xl space-y-4 border border-navy-800">
+          <div className="flex items-center justify-between border-b border-navy-800 pb-3 text-neutral-400">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+              <span className="ml-2 text-[11px]">web-cli@{order.subdomain}</span>
             </div>
-
-            <div className="space-y-2 min-h-[280px]">
-              <p className="text-neutral-400">RuPa Cloud LXD Interactive Web CLI v2.0</p>
-              <p className="text-neutral-400">Type 'help' for system info or start typing commands...</p>
-              <p className="pt-2">root@{order.subdomain}:~# uname -a</p>
-              <p className="text-neutral-300">Linux container-lxd-node42 6.1.0-18-amd64 #1 SMP PREEMPT_DYNAMIC x86_64 GNU/Linux</p>
-              <p className="pt-2">root@{order.subdomain}:~# systemctl status nginx</p>
-              <p className="text-green-400">● nginx.service - High performance web server</p>
-              <p className="text-green-400">   Loaded: loaded (/lib/systemd/system/nginx.service; enabled)</p>
-              <p className="text-green-400">   Active: active (running) since Thu 2026-09-24 10:00:00 UTC</p>
-              <p className="pt-4 flex items-center gap-1 text-white">
-                <span>root@{order.subdomain}:~#</span>
-                <span className="w-2 h-4 bg-green-400 animate-pulse inline-block"></span>
-              </p>
-            </div>
+            <span>Session: Active (Restricted Shell)</span>
           </div>
-        </CoachMark>
+
+          <div className="space-y-2 min-h-[280px]">
+            <p className="text-neutral-400">RuPa Cloud LXD Interactive Web CLI v2.0</p>
+            <p className="text-neutral-400">Type 'help' for system info or start typing commands...</p>
+            <p className="pt-2">root@{order.subdomain}:~# uname -a</p>
+            <p className="text-neutral-300">Linux container-lxd-node42 6.1.0-18-amd64 #1 SMP PREEMPT_DYNAMIC x86_64 GNU/Linux</p>
+            <p className="pt-2">root@{order.subdomain}:~# systemctl status nginx</p>
+            <p className="text-green-400">● nginx.service - High performance web server</p>
+            <p className="text-green-400">   Loaded: loaded (/lib/systemd/system/nginx.service; enabled)</p>
+            <p className="text-green-400">   Active: active (running) since Thu 2026-09-24 10:00:00 UTC</p>
+            <p className="pt-4 flex items-center gap-1 text-white">
+              <span>root@{order.subdomain}:~#</span>
+              <span className="w-2 h-4 bg-green-400 animate-pulse inline-block"></span>
+            </p>
+          </div>
+        </div>
       )}
 
       {/* TAB CONTENT: Deploy (GitHub) */}
