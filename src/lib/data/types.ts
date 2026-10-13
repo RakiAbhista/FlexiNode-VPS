@@ -38,7 +38,7 @@ export interface Plan {
   storageGb: number;
   price: number;
   active: boolean;
-  tier: "Starter" | "Basic" | "Pro";
+  tier: "Micro" | "Starter" | "Basic" | "Pro";
 }
 
 export interface Order {
@@ -46,9 +46,16 @@ export interface Order {
   userId: string;
   planId: string;
   status: OrderStatus;
+  serverStatus?: "RUNNING" | "STOPPED" | string;
   containerId?: string;
   ipAddress?: string;
   subdomain?: string;
+  sshPassword?: string;
+  addon: boolean;
+  addonPrice: number;
+  addonSuspended?: boolean;
+  addonSuspendedAt?: string;
+  setupPackages?: string[];
   startedAt?: string;
   expiresAt?: string;
   createdAt: string;
@@ -94,7 +101,10 @@ export interface DataSourceContract {
   createOrder(
     userId: string,
     planId: string,
-    paymentMethod: PaymentMethod
+    paymentMethod: PaymentMethod,
+    withAddon?: boolean,
+    customSubdomain?: string,
+    setupPackages?: string[]
   ): Promise<{ order: Order; transaction: Transaction }>;
   extendOrder(
     orderId: string,

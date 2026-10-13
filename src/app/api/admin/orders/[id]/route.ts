@@ -3,6 +3,9 @@ import { getSessionUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { OrderStatus } from "@prisma/client";
 
+const ALLOWED_STATUSES = Object.values(OrderStatus);
+const MAX_EXTEND_DAYS = 30; // Admin max extend 30 hari sekaligus
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -16,6 +19,22 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
     const { status, extendDays } = body;
+
+    // Validasi status: hanya enum OrderStatus yang valid
+    if (status && !ALLOWED_STATUSES.includes(status)) {
+      return NextResponse.json({ error: "Status order tidak valid." }, { status: 400 });
+    }
+
+    // Validasi extendDays: harus integer positif, max 30
+    if (extendDays !== undefined) {
+      const days = Number(extendDays);
+      if (!Number.isInteger(days) || days < 1 || days > MAX_EXTEND_DAYS) {
+        return NextResponse.json(
+          { error: `extendDays harus antara 1 dan ${MAX_EXTEND_DAYS}.` },
+          { status: 400 }
+        );
+      }
+    }
 
     const existing = await prisma.order.findUnique({ where: { id } });
     if (!existing) {
@@ -43,6 +62,7 @@ export async function PATCH(
       expiresAt: updated.expiresAt?.toISOString(),
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[admin/orders PATCH]", error);
+    return NextResponse.json({ error: "Terjadi kesalahan internal server." }, { status: 500 });
   }
 }

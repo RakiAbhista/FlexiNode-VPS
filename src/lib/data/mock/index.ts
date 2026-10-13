@@ -155,6 +155,8 @@ const mockOrders: Order[] = [
     containerId: "cnt_lxd_9921",
     ipAddress: "103.152.118.42",
     subdomain: "budi-bot.rupacloud.id",
+    addon: true,
+    addonPrice: 3000,
     startedAt: "2026-09-24T00:00:00Z",
     expiresAt: "2026-09-27T00:00:00Z",
     createdAt: "2026-09-23T23:55:00Z",
@@ -167,6 +169,8 @@ const mockOrders: Order[] = [
     containerId: "cnt_lxd_9925",
     ipAddress: "103.152.118.49",
     subdomain: "demo-ctf.rupacloud.id",
+    addon: false,
+    addonPrice: 0,
     startedAt: "2026-09-23T18:00:00Z",
     expiresAt: "2026-09-24T18:00:00Z",
     createdAt: "2026-09-23T17:50:00Z",
@@ -179,6 +183,8 @@ const mockOrders: Order[] = [
     containerId: "cnt_lxd_9811",
     ipAddress: "103.152.118.12",
     subdomain: "test-node.rupacloud.id",
+    addon: false,
+    addonPrice: 0,
     startedAt: "2026-09-20T08:00:00Z",
     expiresAt: "2026-09-21T08:00:00Z",
     createdAt: "2026-09-20T07:55:00Z",
@@ -305,19 +311,25 @@ export const mockDataSource: DataSourceContract = {
   async createOrder(
     userId: string,
     planId: string,
-    paymentMethod: PaymentMethod
+    paymentMethod: PaymentMethod,
+    withAddon?: boolean,
+    customSubdomain?: string,
+    setupPackages?: string[]
   ): Promise<{ order: Order; transaction: Transaction }> {
     await delay();
     const user = mockUsers.find((u) => u.id === userId);
     const plan = mockPlans.find((p) => p.id === planId);
     if (!user || !plan) throw new Error("User atau Plan tidak valid");
 
-    if (paymentMethod === "BALANCE" && user.balance < plan.price) {
+    const addonPrice = withAddon ? 3000 : 0;
+    const total = plan.price + addonPrice;
+
+    if (paymentMethod === "BALANCE" && user.balance < total) {
       throw new Error("Saldo tidak cukup");
     }
 
     if (paymentMethod === "BALANCE") {
-      user.balance -= plan.price;
+      user.balance -= total;
     }
 
     const now = new Date();
@@ -332,6 +344,8 @@ export const mockDataSource: DataSourceContract = {
       containerId: `cnt_lxd_${Math.floor(1000 + Math.random() * 9000)}`,
       ipAddress: `103.152.118.${Math.floor(10 + Math.random() * 90)}`,
       subdomain: `server-${Math.floor(100 + Math.random() * 900)}.rupacloud.id`,
+      addon: withAddon ?? false,
+      addonPrice,
       startedAt: now.toISOString(),
       expiresAt: expires.toISOString(),
       createdAt: now.toISOString(),

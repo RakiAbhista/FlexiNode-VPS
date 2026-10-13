@@ -18,6 +18,8 @@ import {
   ChevronLeft,
   ChevronRight,
   User as UserIcon,
+  HelpCircle,
+  RefreshCw,
 } from "lucide-react";
 import { User } from "@/lib/data/types";
 import { dataSource } from "@/lib/data";
@@ -33,12 +35,32 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const [mobileOpen, setMobileOpen] = useState<boolean>(false);
 
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+
+  // Load awal tanpa animasi spinner yang mengganggu
   useEffect(() => {
-    async function loadUser() {
+    async function loadInitial() {
       const u = await dataSource.getCurrentUser("CUSTOMER");
       setUser(u);
     }
-    loadUser();
+    loadInitial();
+
+    // HANYA trigger animasi refresh berputar saat ada transaksi saldo (topup/sewa/extend)
+    const handleBalanceUpdate = async () => {
+      setIsRefreshing(true);
+      try {
+        const u = await dataSource.getCurrentUser("CUSTOMER");
+        setUser(u);
+      } finally {
+        setTimeout(() => setIsRefreshing(false), 600);
+      }
+    };
+
+    window.addEventListener("rupacloud:balance-updated", handleBalanceUpdate);
+
+    return () => {
+      window.removeEventListener("rupacloud:balance-updated", handleBalanceUpdate);
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -102,7 +124,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
       {/* FULL HEIGHT DESKTOP SIDEBAR */}
       <aside
         className={cn(
-          "hidden lg:flex flex-col bg-white border-r border-slate-200 min-h-screen sticky top-0 z-40 transition-all duration-300 select-none print:hidden",
+          "hidden lg:flex flex-col justify-between bg-white border-r border-slate-200 h-screen sticky top-0 z-40 transition-all duration-300 select-none print:hidden overflow-hidden",
           isCollapsed ? "w-20" : "w-64"
         )}
       >
@@ -161,7 +183,7 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Bottom Logout */}
-        <div className="p-3 border-t border-slate-100">
+        <div className="p-3 border-t border-slate-100 shrink-0 bg-white">
           <button
             onClick={handleLogout}
             title={isCollapsed ? "Keluar Akun" : undefined}
@@ -275,9 +297,16 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
             {/* Saldo Badge with tour-saldo-card ID */}
             <div
               id="tour-saldo-card"
-              className="flex items-center bg-blue-100/60 border border-blue-200/80 rounded-xl px-2 py-1 sm:px-3 sm:py-1.5 gap-1.5 sm:gap-2 text-xs whitespace-nowrap"
+              className={cn(
+                "flex items-center bg-blue-100/60 border border-blue-200/80 rounded-xl px-2 py-1 sm:px-3 sm:py-1.5 gap-1.5 sm:gap-2 text-xs whitespace-nowrap transition-all duration-300",
+                isRefreshing && "ring-2 ring-blue-500 bg-blue-100 shadow-sm scale-[1.02]"
+              )}
             >
-              <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 shrink-0" />
+              {isRefreshing ? (
+                <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 animate-spin shrink-0" />
+              ) : (
+                <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 shrink-0" />
+              )}
               <div className="flex flex-col">
                 <span className="hidden sm:block text-[10px] text-neutral-500 leading-none">Saldo</span>
                 <span className="font-extrabold text-navy-900 leading-tight text-[11px] sm:text-xs">
@@ -292,6 +321,19 @@ export function CustomerShell({ children }: { children: React.ReactNode }) {
                 <PlusCircle className="w-3.5 h-3.5" />
               </Link>
             </div>
+
+            <button
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("rupacloud:restart-tour"));
+                }
+              }}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-navy-800 hover:text-blue-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-semibold rounded-xl transition-all cursor-pointer"
+              title="Buka Ulang Panduan & Tips Penggunaan"
+            >
+              <HelpCircle className="w-3.5 h-3.5 text-blue-600" />
+              <span className="hidden sm:inline">Panduan</span>
+            </button>
 
             <Link
               href="/checkout"

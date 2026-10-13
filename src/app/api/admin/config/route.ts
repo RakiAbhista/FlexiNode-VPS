@@ -21,7 +21,8 @@ export async function GET() {
       ),
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[API]", error);
+    return NextResponse.json({ error: "Terjadi kesalahan internal server." }, { status: 500 });
   }
 }
 
@@ -59,6 +60,7 @@ export async function PATCH(request: Request) {
       ),
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[API]", error);
+    return NextResponse.json({ error: "Terjadi kesalahan internal server." }, { status: 500 });
   }
 }

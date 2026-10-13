@@ -21,7 +21,8 @@ export async function GET(request: Request) {
       dismissed: pref?.dismissed ?? false,
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[API]", error);
+    return NextResponse.json({ error: "Terjadi kesalahan internal server." }, { status: 500 });
   }
 }
 
@@ -35,10 +36,16 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const { pageKey = "dashboard", dismissed = true } = body;
 
+    // Whitelist pageKey yang valid — cegah injection key arbitrary
+    const VALID_PAGE_KEYS = ["dashboard", "products", "topup", "history", "settings", "checkout", "tour-onboarding"];
+    if (!VALID_PAGE_KEYS.includes(pageKey)) {
+      return NextResponse.json({ error: "pageKey tidak valid." }, { status: 400 });
+    }
+
     const updated = await prisma.tutorialPref.upsert({
       where: { userId_pageKey: { userId: user.id, pageKey } },
-      update: { dismissed },
-      create: { userId: user.id, pageKey, dismissed },
+      update: { dismissed: Boolean(dismissed) },
+      create: { userId: user.id, pageKey, dismissed: Boolean(dismissed) },
     });
 
     return NextResponse.json({
@@ -46,6 +53,7 @@ export async function PATCH(request: Request) {
       dismissed: updated.dismissed,
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[API]", error);
+    return NextResponse.json({ error: "Terjadi kesalahan internal server." }, { status: 500 });
   }
 }

@@ -22,9 +22,15 @@ export async function GET() {
         userId: o.userId,
         planId: o.planId,
         status: o.status,
+        serverStatus: o.status === "FAILED" ? "STOPPED" : ((o as any).serverStatus || "RUNNING"),
         containerId: o.containerId || undefined,
         ipAddress: o.ipAddress || undefined,
         subdomain: o.subdomain || undefined,
+        addon: o.addon,
+        addonPrice: o.addonPrice,
+        addonSuspended: o.addonSuspended,
+        addonSuspendedAt: o.addonSuspendedAt?.toISOString(),
+        setupPackages: o.setupPackages ? JSON.parse(o.setupPackages) : [],
         startedAt: o.startedAt?.toISOString(),
         expiresAt: o.expiresAt?.toISOString(),
         createdAt: o.createdAt.toISOString(),
@@ -43,6 +49,7 @@ export async function GET() {
       })),
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[API]", error);
+    return NextResponse.json({ error: "Terjadi kesalahan internal server." }, { status: 500 });
   }
 }

@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     });
 
     if (!dbUser || !dbUser.githubToken) {
-      return NextResponse.json({ error: "Not connected to GitHub" }, { status: 400 });
+      return NextResponse.json({ success: true, connected: false, repositories: null }, { status: 200 });
     }
 
     // Fetch repositories using the token (sort by updated to get most recent)
@@ -44,11 +44,15 @@ export async function GET(request: Request) {
     // Map to a cleaner format
     const repositories = reposData.map((repo: any) => ({
       id: repo.id,
-      name: repo.full_name,
+      name: repo.name || repo.full_name,
+      full_name: repo.full_name,
       url: repo.html_url,
       private: repo.private,
-      defaultBranch: repo.default_branch,
+      defaultBranch: repo.default_branch || "main",
       updatedAt: repo.updated_at,
+      description: repo.description || null,
+      language: repo.language || null,
+      stars: repo.stargazers_count || 0,
     }));
 
     return NextResponse.json({
@@ -58,6 +62,7 @@ export async function GET(request: Request) {
     });
   } catch (error: any) {
     console.error("Fetch Repos Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[API]", error);
+    return NextResponse.json({ error: "Terjadi kesalahan internal server." }, { status: 500 });
   }
 }

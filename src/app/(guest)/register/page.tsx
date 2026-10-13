@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { registerSchema, RegisterInput } from "@/lib/validations";
 import { Logo } from "@/components/shared/logo";
+import { GithubIcon } from "@/components/shared/github-icon";
 import { ArrowRight, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 
@@ -186,6 +187,23 @@ export default function RegisterPage() {
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-white px-2 text-neutral-400 font-medium">atau daftar dengan</span>
+            </div>
+          </div>
+
+          <a
+            href="/api/auth/github?redirect=/dashboard"
+            className="w-full py-2.5 px-4 bg-slate-900 hover:bg-black text-white rounded-lg font-semibold text-xs flex items-center justify-center gap-2 shadow transition-all hover:-translate-y-0.5"
+          >
+            <GithubIcon className="w-4 h-4" />
+            <span>Daftar Cepat dengan GitHub</span>
+          </a>
 
           <div className="pt-4 border-t border-slate-100 text-center text-xs text-neutral-600">
             Sudah punya akun?{" "}

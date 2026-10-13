@@ -59,14 +59,37 @@ export function OnboardingTour({ userId }: OnboardingTourProps) {
 
   useEffect(() => {
     async function checkPref() {
-      const isDismissed = await dataSource.getTutorialPref(userId, "customer-tour-v2");
+      // 1. Cek dari localStorage browser dulu (instan tanpa delay/flicker)
+      const localDismissed = typeof window !== "undefined" && localStorage.getItem(`tour_dismissed_${userId}`);
+      if (localDismissed === "true") {
+        return;
+      }
+
+      // 2. Cek preferensi dari server/DB
+      const isDismissed = await dataSource.getTutorialPref(userId, "tour-onboarding");
       if (!isDismissed) {
         setTimeout(() => {
           setIsOpen(true);
-        }, 400);
+        }, 500);
+      } else if (typeof window !== "undefined") {
+        localStorage.setItem(`tour_dismissed_${userId}`, "true");
       }
     }
-    checkPref();
+
+    if (userId) {
+      checkPref();
+    }
+
+    // Listener jika user ingin memunculkan kembali tips/panduan via tombol
+    const handleReopen = () => {
+      setActiveStep(0);
+      setIsOpen(true);
+    };
+
+    window.addEventListener("rupacloud:restart-tour", handleReopen);
+    return () => {
+      window.removeEventListener("rupacloud:restart-tour", handleReopen);
+    };
   }, [userId]);
 
   useEffect(() => {
@@ -99,7 +122,12 @@ export function OnboardingTour({ userId }: OnboardingTourProps) {
 
   const handleComplete = async () => {
     setIsOpen(false);
-    await dataSource.dismissTutorial(userId, "customer-tour-v2");
+    // Simpan ke localStorage agar saat refresh halaman TIDAK pernah muncul lagi
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`tour_dismissed_${userId}`, "true");
+    }
+    // Simpan ke database
+    await dataSource.dismissTutorial(userId, "tour-onboarding");
   };
 
   if (!isOpen) return null;

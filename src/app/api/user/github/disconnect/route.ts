@@ -11,7 +11,7 @@ export async function POST() {
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { githubHandle: null },
+      data: { githubHandle: null, githubToken: null },
     });
 
     return NextResponse.json({
@@ -20,6 +20,7 @@ export async function POST() {
       githubHandle: null,
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[API]", error);
+    return NextResponse.json({ error: "Terjadi kesalahan internal server." }, { status: 500 });
   }
 }

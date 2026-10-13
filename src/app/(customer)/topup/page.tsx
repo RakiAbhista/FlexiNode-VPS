@@ -62,11 +62,18 @@ export default function TopupPage() {
     setSubmitting(true);
     try {
       await dataSource.topUpBalance(user.id, amount, "GATEWAY");
+      
+      // Update saldo di header dan seluruh komponen seketika
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("rupacloud:balance-updated"));
+      }
+
       setSubmitting(false);
       setSuccess(true);
       setTimeout(() => {
+        router.refresh();
         router.push(redirectAfter);
-      }, 1200);
+      }, 1000);
     } catch (err: any) {
       setError(err.message || "Gagal memproses top-up.");
       setSubmitting(false);

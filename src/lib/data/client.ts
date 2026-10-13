@@ -59,7 +59,7 @@ export const clientDataSource: DataSourceContract = {
 
   // ── Plans ──────────────────────────────────────────────────────────────────
   async getPlans(): Promise<Plan[]> {
-    const data = await apiFetch<{ plans: Plan[] }>("/api/admin/plans");
+    const data = await apiFetch<{ plans: Plan[] }>("/api/plans"); // public endpoint
     return data.plans ?? [];
   },
 
@@ -104,14 +104,23 @@ export const clientDataSource: DataSourceContract = {
   async createOrder(
     _userId: string,
     planId: string,
-    paymentMethod: PaymentMethod
+    paymentMethod: PaymentMethod,
+    withAddon?: boolean,
+    customSubdomain?: string,
+    setupPackages?: string[]
   ): Promise<{ order: Order; transaction: Transaction }> {
-    const data = await apiFetch<{ order: Order; transaction: Transaction }>(
+    const data = await apiFetch<{ order: Order; transaction: Transaction; transactionId: string }>(
       "/api/customer/orders/create",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId, paymentMethod }),
+        body: JSON.stringify({
+          planId,
+          paymentMethod,
+          withAddon: withAddon ?? false,
+          customSubdomain: customSubdomain?.trim() || undefined,
+          setupPackages: setupPackages && setupPackages.length > 0 ? setupPackages : undefined,
+        }),
       }
     );
     return data;

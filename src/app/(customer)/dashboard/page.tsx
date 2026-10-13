@@ -174,16 +174,23 @@ export default async function CustomerDashboard() {
                 >
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
-                      <span
-                        className={cn(
-                          "inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider",
-                          isExpiring
-                            ? "bg-amber-100 text-amber-800"
-                            : "bg-green-100 text-green-800"
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className={cn(
+                            "inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider",
+                            isExpiring
+                              ? "bg-amber-100 text-amber-800"
+                              : "bg-green-100 text-green-800"
+                          )}
+                        >
+                          {isExpiring ? "Segera Berakhir" : "Aktif"}
+                        </span>
+                        {order.addon && (
+                          <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                            CI/CD
+                          </span>
                         )}
-                      >
-                        {isExpiring ? "Segera Berakhir" : "Aktif"}
-                      </span>
+                      </div>
                       <h3 className="font-bold text-navy-900 text-base">
                         {order.plan?.name || "Server LXD"}
                       </h3>

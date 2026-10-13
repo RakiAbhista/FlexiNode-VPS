@@ -150,12 +150,23 @@ export const liveDataSource: DataSourceContract = {
       userId: o.userId,
       planId: o.planId,
       status: o.status as OrderStatus,
+      serverStatus: o.serverStatus || "RUNNING",
       containerId: o.containerId || undefined,
       ipAddress: o.ipAddress || undefined,
       subdomain: o.subdomain || undefined,
+      sshPassword: o.sshPassword || undefined,
+      addon: o.addon,
+      addonPrice: o.addonPrice,
+      addonSuspended: o.addonSuspended,
+      addonSuspendedAt: o.addonSuspendedAt?.toISOString(),
       startedAt: o.startedAt?.toISOString(),
       expiresAt: o.expiresAt?.toISOString(),
       createdAt: o.createdAt.toISOString(),
+      setupPackages: o.setupPackages
+        ? typeof o.setupPackages === "string"
+          ? JSON.parse(o.setupPackages)
+          : o.setupPackages
+        : [],
       plan: o.plan
         ? {
             id: o.plan.id,
@@ -166,7 +177,7 @@ export const liveDataSource: DataSourceContract = {
             storageGb: o.plan.storageGb,
             price: o.plan.price,
             active: o.plan.active,
-            tier: o.plan.tier as "Starter" | "Basic" | "Pro",
+            tier: o.plan.tier as "Micro" | "Starter" | "Basic" | "Pro",
           }
         : undefined,
       user: o.user
@@ -193,12 +204,23 @@ export const liveDataSource: DataSourceContract = {
       userId: o.userId,
       planId: o.planId,
       status: o.status as OrderStatus,
+      serverStatus: o.serverStatus || "RUNNING",
       containerId: o.containerId || undefined,
       ipAddress: o.ipAddress || undefined,
       subdomain: o.subdomain || undefined,
+      sshPassword: o.sshPassword || undefined,
+      addon: o.addon,
+      addonPrice: o.addonPrice,
+      addonSuspended: o.addonSuspended,
+      addonSuspendedAt: o.addonSuspendedAt?.toISOString(),
       startedAt: o.startedAt?.toISOString(),
       expiresAt: o.expiresAt?.toISOString(),
       createdAt: o.createdAt.toISOString(),
+      setupPackages: o.setupPackages
+        ? typeof o.setupPackages === "string"
+          ? JSON.parse(o.setupPackages)
+          : o.setupPackages
+        : [],
       plan: o.plan
         ? {
             id: o.plan.id,
@@ -209,7 +231,7 @@ export const liveDataSource: DataSourceContract = {
             storageGb: o.plan.storageGb,
             price: o.plan.price,
             active: o.plan.active,
-            tier: o.plan.tier as "Starter" | "Basic" | "Pro",
+            tier: o.plan.tier as "Micro" | "Starter" | "Basic" | "Pro",
           }
         : undefined,
     };
@@ -228,9 +250,19 @@ export const liveDataSource: DataSourceContract = {
       containerId: o.containerId || undefined,
       ipAddress: o.ipAddress || undefined,
       subdomain: o.subdomain || undefined,
+      sshPassword: o.sshPassword || undefined,
+      addon: o.addon,
+      addonPrice: o.addonPrice,
+      addonSuspended: o.addonSuspended,
+      addonSuspendedAt: o.addonSuspendedAt?.toISOString(),
       startedAt: o.startedAt?.toISOString(),
       expiresAt: o.expiresAt?.toISOString(),
       createdAt: o.createdAt.toISOString(),
+      setupPackages: o.setupPackages
+        ? typeof o.setupPackages === "string"
+          ? JSON.parse(o.setupPackages)
+          : o.setupPackages
+        : [],
       plan: o.plan
         ? {
             id: o.plan.id,
@@ -241,7 +273,7 @@ export const liveDataSource: DataSourceContract = {
             storageGb: o.plan.storageGb,
             price: o.plan.price,
             active: o.plan.active,
-            tier: o.plan.tier as "Starter" | "Basic" | "Pro",
+            tier: o.plan.tier as "Micro" | "Starter" | "Basic" | "Pro",
           }
         : undefined,
       user: o.user
@@ -260,19 +292,25 @@ export const liveDataSource: DataSourceContract = {
   async createOrder(
     userId: string,
     planId: string,
-    paymentMethod: PaymentMethod
+    paymentMethod: PaymentMethod,
+    withAddon?: boolean,
+    customSubdomain?: string,
+    setupPackages?: string[]
   ): Promise<{ order: Order; transaction: Transaction }> {
     const plan = await prisma.plan.findUniqueOrThrow({ where: { id: planId } });
     const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
 
-    if (paymentMethod === "BALANCE" && user.balance < plan.price) {
+    const addonPrice = withAddon ? 3000 : 0;
+    const totalAmount = plan.price + addonPrice;
+
+    if (paymentMethod === "BALANCE" && user.balance < totalAmount) {
       throw new Error("Saldo tidak mencukupi untuk sewa server ini.");
     }
 
     if (paymentMethod === "BALANCE") {
       await prisma.user.update({
         where: { id: userId },
-        data: { balance: { decrement: plan.price } },
+        data: { balance: { decrement: totalAmount } },
       });
     }
 
@@ -288,6 +326,9 @@ export const liveDataSource: DataSourceContract = {
         containerId: `lxd-cont-${Math.floor(1000 + Math.random() * 9000)}`,
         ipAddress: `103.147.22.${Math.floor(10 + Math.random() * 200)}`,
         subdomain: randomSub,
+        addon: withAddon ?? false,
+        addonPrice,
+        setupPackages: setupPackages && setupPackages.length > 0 ? JSON.stringify(setupPackages) : null,
         startedAt: now,
         expiresAt: expires,
       },
@@ -298,7 +339,7 @@ export const liveDataSource: DataSourceContract = {
       data: {
         userId,
         type: TransactionType.RENTAL,
-        amount: plan.price,
+        amount: totalAmount,
         method: paymentMethod,
         status: TransactionStatus.SUCCESS,
         orderId: newOrder.id,
@@ -314,6 +355,8 @@ export const liveDataSource: DataSourceContract = {
         containerId: newOrder.containerId || undefined,
         ipAddress: newOrder.ipAddress || undefined,
         subdomain: newOrder.subdomain || undefined,
+        addon: newOrder.addon,
+        addonPrice: newOrder.addonPrice,
         startedAt: newOrder.startedAt?.toISOString(),
         expiresAt: newOrder.expiresAt?.toISOString(),
         createdAt: newOrder.createdAt.toISOString(),
@@ -326,7 +369,7 @@ export const liveDataSource: DataSourceContract = {
           storageGb: newOrder.plan.storageGb,
           price: newOrder.plan.price,
           active: newOrder.plan.active,
-          tier: newOrder.plan.tier as "Starter" | "Basic" | "Pro",
+          tier: newOrder.plan.tier as "Micro" | "Starter" | "Basic" | "Pro",
         },
       },
       transaction: {
@@ -396,6 +439,8 @@ export const liveDataSource: DataSourceContract = {
       containerId: updated.containerId || undefined,
       ipAddress: updated.ipAddress || undefined,
       subdomain: updated.subdomain || undefined,
+      addon: updated.addon,
+      addonPrice: updated.addonPrice,
       startedAt: updated.startedAt?.toISOString(),
       expiresAt: updated.expiresAt?.toISOString(),
       createdAt: updated.createdAt.toISOString(),

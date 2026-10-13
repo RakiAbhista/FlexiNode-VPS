@@ -6,11 +6,11 @@ export async function POST() {
     message: "Logout berhasil.",
   });
 
-  response.cookies.set("rc_mock_role", "GUEST", {
-    path: "/",
-    httpOnly: false,
-    maxAge: 0,
-  });
+  const cookieOpts = { path: "/", maxAge: 0 };
+  // Hapus semua session cookies
+  response.cookies.set("rc_mock_role", "", cookieOpts);
+  response.cookies.set("rc_user_email", "", cookieOpts);
+  response.cookies.set("rc_user_id", "", cookieOpts);
 
   return response;
 }

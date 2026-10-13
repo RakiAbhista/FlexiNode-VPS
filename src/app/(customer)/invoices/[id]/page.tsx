@@ -64,7 +64,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-navy-900 font-extrabold text-2xl tracking-tight">
               <div className="relative w-12 h-12 shrink-0 flex items-center justify-center">
-                <img src="/logo.png" alt="RuPa Cloud Logo" className="object-contain w-full h-full scale-[1.3]" />
+                <img src="/logo.png" alt="RuPa Cloud Logo" className="object-contain w-full h-full" />
               </div>
               <span className="text-2xl sm:text-3xl">RuPa<span className="text-blue-600">Cloud</span></span>
             </div>

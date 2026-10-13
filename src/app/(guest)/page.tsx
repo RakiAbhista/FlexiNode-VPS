@@ -35,7 +35,9 @@ export default function LandingPage() {
   useEffect(() => {
     async function fetchPlans() {
       const data = await dataSource.getPlans();
-      setPlans(data.filter((p) => p.tier === "Starter"));
+      // Urutkan berdasarkan durasi (1 hari, 3 hari, 7 hari)
+      const sorted = [...data].sort((a, b) => a.durationDays - b.durationDays);
+      setPlans(sorted);
       setLoading(false);
     }
     fetchPlans();
@@ -332,38 +334,38 @@ export default function LandingPage() {
                   <div key={i} className="h-[600px] bg-slate-200/60 animate-pulse rounded-3xl" />
                 ))
               : plans.slice(0, 3).map((plan, idx) => {
-                  const isFeatured = idx === 1;
-                  // Reveal order: Left (0) -> Right (2) -> Middle (1)
+                  const isFeatured = plan.durationDays === 3;
+                  // Reveal order: 1 Day (idx 0) -> 7 Days (idx 2) -> 3 Days (Featured, idx 1)
                   let revealDelay = 0;
-                  if (idx === 0) revealDelay = 0;
-                  else if (idx === 2) revealDelay = 0.3;
-                  else if (idx === 1) revealDelay = 0.6;
+                  if (plan.durationDays === 1) revealDelay = 0;
+                  else if (plan.durationDays === 7) revealDelay = 0.3;
+                  else if (plan.durationDays === 3) revealDelay = 0.6;
 
                   let planSubtitle = "";
                   let planDesc = "";
                   let planTarget = "";
 
-                  if (idx === 0) {
+                  if (plan.durationDays === 1) {
                     planSubtitle = t("Uji Coba & Eksperimen", "Trial & Experiment");
                     planDesc = t(
                       "Sangat cocok untuk kalian yang butuh server sementara untuk testing aplikasi, deploy tugas akhir, atau sekadar mencoba environment Linux.",
                       "Perfect for those who need a temporary server for app testing, final project deployment, or just trying out a Linux environment."
                     );
                     planTarget = t("Target: Mahasiswa saat presentasi tugas atau demo project.", "Target: Students during assignment presentations or project demos.");
-                  } else if (idx === 1) {
-                    planSubtitle = t("Pengerjaan Project Mingguan", "Weekly Project Work");
+                  } else if (plan.durationDays === 3) {
+                    planSubtitle = t("Paling Populer & Fleksibel", "Most Popular & Flexible");
                     planDesc = t(
-                      "Paket terlaris untuk pengerjaan project ukuran sedang, hackathon, atau event akhir pekan. Waktu yang pas untuk fokus coding tanpa pusing mikirin biaya bulanan.",
-                      "Best-selling plan for medium-sized projects, hackathons, or weekend events. The right time to focus on coding without worrying about monthly fees."
+                      "Paket terfavorit untuk pengerjaan project, hackathon, atau tugas akhir. Mendukung add-on Subdomain & GitHub CI/CD otomatis.",
+                      "Top favorite plan for projects, hackathons, or final assignments. Supports automated Subdomain & GitHub CI/CD add-on."
                     );
-                    planTarget = t("Target: Mahasiswa tingkat akhir, peserta lomba, atau freelance.", "Target: Final year students, competition participants, or freelancers.");
+                    planTarget = t("Target: Mahasiswa tugas akhir, peserta hackathon, atau freelance.", "Target: Final-year students, hackathon participants, or freelancers.");
                   } else {
-                    planSubtitle = t("Hosting Sementara & Event", "Temporary Hosting & Events");
+                    planSubtitle = t("Hosting Seminggu Penuh", "Full Week Hosting");
                     planDesc = t(
-                      "Pilihan tepat untuk menjalankan server nonstop selama seminggu penuh. Cocok untuk menampung traffic saat ujian online, event kampus, atau pameran.",
-                      "The right choice for running a server nonstop for a full week. Suitable for accommodating traffic during online exams, campus events, or exhibitions."
+                      "Pilihan tepat untuk menjalankan server nonstop selama seminggu penuh. Cocok untuk demo panjang, testing komprehensif, atau event kampus.",
+                      "The right choice for running a server nonstop for a full week. Suitable for extended demos, comprehensive testing, or campus events."
                     );
-                    planTarget = t("Target: Panitia event kampus, ujian online, atau project jangka menengah.", "Target: Campus event committees, online exams, or medium-term projects.");
+                    planTarget = t("Target: Panitia event kampus, ujian praktikum, atau project jangka menengah.", "Target: Campus event committees, practical exams, or medium-term projects.");
                   }
 
                   return (
@@ -379,13 +381,20 @@ export default function LandingPage() {
                         {isFeatured && (
                           <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
                             <span className="bg-navy-800 text-white text-[11px] font-bold px-5 py-2 rounded-full uppercase tracking-wider shadow-lg inline-flex items-center justify-center">
-                              <SparklesText text={t("Paling Laris", "Best Seller")} />
+                              <SparklesText text={t("Paling Populer", "Most Popular")} />
                             </span>
                           </div>
                         )}
                         <div className="flex flex-col flex-grow">
                           <div className="space-y-2">
-                            <span className="text-xs font-extrabold text-blue-600 uppercase tracking-widest">{plan.tier}</span>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-extrabold text-blue-600 uppercase tracking-widest">{plan.name}</span>
+                              {plan.durationDays >= 3 && (
+                                <span className="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md">
+                                  + CI/CD Ready
+                                </span>
+                              )}
+                            </div>
                             <h3 className="text-xl font-bold text-navy-900 leading-tight">{planSubtitle}</h3>
                           </div>
                           
@@ -424,13 +433,17 @@ export default function LandingPage() {
                             </li>
                             <li className="flex items-start gap-3">
                               <CheckCircle2 className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
-                              <span>Akses Web CLI & Subdomain Publik</span>
+                              <span>
+                                {plan.durationDays >= 3
+                                  ? t("Support Add-on Subdomain & GitHub CI/CD", "Supports Subdomain & GitHub CI/CD Add-on")
+                                  : t("Akses Web CLI & Dedicated IP", "Web CLI Access & Dedicated IP")}
+                              </span>
                             </li>
                           </ul>
                         </div>
                         <div className="mt-auto">
                           <Link
-                            href="/product"
+                            href={`/checkout?planId=${plan.id}`}
                             className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center transition-all ${
                               isFeatured
                                 ? "bg-navy-800 hover:bg-navy-900 text-white shadow-lg hover:shadow-xl"

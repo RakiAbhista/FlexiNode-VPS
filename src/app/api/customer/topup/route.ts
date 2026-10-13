@@ -11,11 +11,19 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { amount, method = "GATEWAY" } = body;
+    const amount = Number(body.amount);
+    const method = body.method === "BALANCE" ? "BALANCE" : "GATEWAY";
 
     if (!amount || amount < 5000) {
       return NextResponse.json(
         { error: "Nominal top-up minimal Rp 5.000." },
+        { status: 400 }
+      );
+    }
+
+    if (amount > 1_000_000) {
+      return NextResponse.json(
+        { error: "Nominal top-up maksimal Rp 1.000.000 per transaksi." },
         { status: 400 }
       );
     }
@@ -45,6 +53,7 @@ export async function POST(request: Request) {
       transactionId: tx.id,
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[API]", error);
+    return NextResponse.json({ error: "Terjadi kesalahan internal server." }, { status: 500 });
   }
 }

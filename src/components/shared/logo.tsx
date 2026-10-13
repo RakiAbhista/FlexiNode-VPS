@@ -20,7 +20,9 @@ export function Logo({ className, iconOnly = false, href = "/", lightText = fals
           src="/logo.png" 
           alt="RuPa Cloud Logo" 
           fill 
-          className="object-contain scale-[1.3]"
+          sizes="48px"
+          unoptimized
+          className="object-contain"
           priority
         />
       </div>

@@ -16,6 +16,7 @@ model User {
   role          Role           @default(CUSTOMER)
   balance       Int            @default(0)
   suspended     Boolean        @default(false)
+  emailVerified Boolean        @default(true)
   githubHandle  String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -45,16 +46,24 @@ model Order {
   userId       String
   planId       String
   status       OrderStatus   @default(ACTIVE)
+  serverStatus String        @default("RUNNING") // RUNNING | STOPPED
   containerId  String?
   ipAddress    String?
-  subdomain    String?
-  startedAt    DateTime?
-  expiresAt    DateTime?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  subdomain        String?
+  sshPassword      String?       // Password root untuk akses SSH customer
+  addon            Boolean       @default(false)  // true = kustomer beli paket subdomain+CI/CD
+  addonPrice       Int           @default(0)
+  addonSuspended   Boolean       @default(false)  // true = addon disuspend (grace period 24 jam)
+  addonSuspendedAt DateTime?                      // Waktu ketika addon disuspend
+  setupPackages    String?                        // JSON array string of auto-installed setups, e.g. ["nodejs","git"]
+  startedAt        DateTime?
+  expiresAt        DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
   plan         Plan          @relation(fields: [planId], references: [id])
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  metrics      ContainerMetric[]
 }
 
 model Transaction {
@@ -128,4 +137,23 @@ enum TransactionStatus {
   PENDING
   SUCCESS
   FAILED
+}
+
+model ContainerMetric {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  cpu         Int      @default(0)
+  ramPercent  Int      @default(0)
+  ramMb       Int      @default(0)
+  ramTotalMb  Int      @default(512)
+  diskGb      Float    @default(0)
+  diskTotalGb Float    @default(10)
+  networkRxMb Float    @default(0)
+  networkTxMb Float    @default(0)
+  uptime      String?
+  online      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([orderId, createdAt])
 }

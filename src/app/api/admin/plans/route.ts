@@ -4,6 +4,11 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
+    const user = await getSessionUser();
+    if (!user || user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Access denied: Admin only." }, { status: 403 });
+    }
+
     const plans = await prisma.plan.findMany({
       orderBy: { price: "asc" },
     });
@@ -23,7 +28,8 @@ export async function GET() {
       })),
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[admin/plans GET]", error);
+    return NextResponse.json({ error: "Terjadi kesalahan internal server." }, { status: 500 });
   }
 }
 
@@ -63,6 +69,7 @@ export async function POST(request: Request) {
       plan: newPlan,
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[API]", error);
+    return NextResponse.json({ error: "Terjadi kesalahan internal server." }, { status: 500 });
   }
 }
